@@ -1,0 +1,4 @@
+{
+  "template": "${{CHANGELOG}}\n\n**Merged pull requests:**\n\n${{UNCATEGORIZED}}",
+  "pr_template": "- ${{TITLE}} #${{NUMBER}} ([${{AUTHOR}}](https://github.com/${{AUTHOR}}))"
+}

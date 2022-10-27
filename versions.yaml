@@ -1,0 +1,44 @@
+name: Version Management
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  commit_actions:
+    runs-on: [self-hosted, ec2, devops]
+    container:
+      image: ghcr.io/vertexinc/vtx-k8s-modules-eks/trm-deploy-terragrunt-terraform-kubectl-helm:0.0.9
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Bump version and push tag
+        id: bump_version
+        uses: anothrNick/github-tag-action@1.36.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: false
+          VERBOSE: true
+          DRY_RUN: false
+          DEFAULT_BUMP: patch
+          RELEASE_BRANCHES: main
+
+      - name: Changelog
+        id: github_changelog
+        uses: mikepenz/release-changelog-builder-action@v2
+        with:
+          configuration: ".github/scripts/release_changelog_builder_config.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create a GitHub release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          body: ${{ steps.github_changelog.outputs.changelog }}
+          tag_name: ${{ steps.bump_version.outputs.new_tag }}
+          release_name: Release ${{ steps.bump_version.outputs.new_tag }}
